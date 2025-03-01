@@ -5,19 +5,19 @@ import { NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, DatePipe, JsonPipe } fro
 @Component({
   selector: 'app-cell-editor',
   standalone: true,
-  imports: [NgSwitch, NgIf, DatePipe],
+  imports: [NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, DatePipe],
   template: `
     <div [ngSwitch]="type" class="cell-editor">
       <!-- Boolean field -->
-      @case ('boolean') {
+      <ng-container *ngSwitchCase="'boolean'">
         <input
           type="checkbox"
           [checked]="value"
           (change)="updateBooleanValue($event)">
-      }
+      </ng-container>
 
       <!-- String field -->
-      @case ('string') {
+      <ng-container *ngSwitchCase="'string'">
         <div class="relative">
           <div
             class="cursor-pointer w-full truncate max-w-xs"
@@ -34,10 +34,10 @@ import { NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, DatePipe, JsonPipe } fro
             (keyup.enter)="saveString($event)"
             #inputField>
         </div>
-      }
+      </ng-container>
 
       <!-- Number field -->
-      @case ('number') {
+      <ng-container *ngSwitchCase="'number'">
         <div class="relative">
           <div
             class="cursor-pointer"
@@ -54,33 +54,33 @@ import { NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, DatePipe, JsonPipe } fro
             (keyup.enter)="saveNumber($event)"
             #inputField>
         </div>
-      }
+      </ng-container>
 
       <!-- Timestamp field -->
-      @case ('timestamp') {
+      <ng-container *ngSwitchCase="'timestamp'">
         <div class="text-gray-600">
           {{ value?.toDate() | date:'medium' }}
         </div>
-      }
+      </ng-container>
 
       <!-- Array field -->
-      @case ('array') {
+      <ng-container *ngSwitchCase="'array'">
         <div class="cursor-pointer text-blue-500 hover:underline" (click)="openArrayEditor()">
           Array [{{ value?.length || 0 }} items]
         </div>
-      }
+      </ng-container>
 
       <!-- Map field -->
-      @case ('map') {
+      <ng-container *ngSwitchCase="'map'">
         <div class="cursor-pointer text-blue-500 hover:underline" (click)="openMapEditor()">
           Object {...}
         </div>
-      }
+      </ng-container>
 
       <!-- Default display -->
-      @default {
+      <ng-container *ngSwitchDefault>
         <div class="truncate max-w-xs">{{ displayValue() }}</div>
-      }
+      </ng-container>
     </div>
   `,
   styles: [`
@@ -91,10 +91,10 @@ import { NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, DatePipe, JsonPipe } fro
 })
 export class CellEditorComponent {
   @Input() value: any;
-  @Input() type: string;
-  @Input() docId: string;
-  @Input() fieldName: string;
-  @Input() collectionName: string;
+  @Input() type: string = ''; // Initialize property
+  @Input() docId: string = ''; // Initialize property
+  @Input() fieldName: string = ''; // Initialize property
+  @Input() collectionName: string = ''; // Initialize property
 
   @Output() valueChanged = new EventEmitter<{docId: string, fieldName: string, value: any}>();
 
