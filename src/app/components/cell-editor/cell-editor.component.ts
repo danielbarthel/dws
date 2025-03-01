@@ -5,7 +5,7 @@ import { NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, DatePipe, JsonPipe } fro
 @Component({
   selector: 'app-cell-editor',
   standalone: true,
-  imports: [NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, DatePipe, JsonPipe],
+  imports: [NgSwitch, NgIf, DatePipe],
   template: `
     <div [ngSwitch]="type" class="cell-editor">
       <!-- Boolean field -->

@@ -9,7 +9,7 @@ import { Column } from '../../models/collection.model';
 @Component({
   selector: 'app-column-selector',
   standalone: true,
-  imports: [AsyncPipe, NgIf],
+  imports: [AsyncPipe],
   template: `
     <div class="column-selector bg-white p-4 rounded shadow">
       <h3 class="text-lg font-semibold mb-2">Column Visibility</h3>
