@@ -1,10 +1,11 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, DatePipe, JsonPipe } from '@angular/common';
+import {ArrayDialogComponent} from '../array-dialog/array-dialog.component';
 
 @Component({
   selector: 'app-cell-editor',
   standalone: true,
-  imports: [NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, DatePipe],
+  imports: [NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, DatePipe, ArrayDialogComponent],
   template: `
     <div class="cell-editor">
       <!-- Image field -->
@@ -79,9 +80,20 @@ import { NgSwitch, NgSwitchCase, NgSwitchDefault, NgIf, DatePipe, JsonPipe } fro
 
           <!-- Array field -->
           <ng-container *ngSwitchCase="'array'">
-            <div class="cursor-pointer text-blue-500 hover:underline" (click)="openArrayEditor()">
-              Array [{{ value?.length || 0 }} items]
+            <div class="cursor-pointer text-blue-500 hover:text-blue-400"
+                 (click)="toggleArrayDialog($event)">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
+
+            <app-array-dialog
+              *ngIf="showArrayDialog"
+              [title]="fieldName"
+              [items]="value || []"
+              [position]="dialogPosition"
+              (closed)="toggleArrayDialog()">
+            </app-array-dialog>
           </ng-container>
 
           <!-- Map field -->
@@ -123,7 +135,9 @@ export class CellEditorComponent {
 
   @Output() valueChanged = new EventEmitter<{docId: string, fieldName: string, value: any}>();
 
+  showArrayDialog = false;
   isEditing = false;
+  dialogPosition = { x: 0, y: 0 };
 
   startEditing(): void {
     this.isEditing = true;
@@ -183,6 +197,17 @@ export class CellEditorComponent {
     const baseUrl = 'https://firebasestorage.googleapis.com/v0/b/disco-416210.appspot.com/o/';
     const encodedPath = path.replace(/\//g, '%2F');
     return `${baseUrl}${encodedPath}?alt=media`;
+  }
+
+  toggleArrayDialog(event?: MouseEvent): void {
+    if (event) {
+      const rect = (event.target as HTMLElement).getBoundingClientRect();
+      this.dialogPosition = {
+        x: rect.left,
+        y: rect.bottom + 5
+      };
+    }
+    this.showArrayDialog = !this.showArrayDialog;
   }
 
   private emitChange(newValue: any): void {

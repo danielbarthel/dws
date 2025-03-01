@@ -23,16 +23,16 @@ export class DataManagerService {
         documents: [],
         columns: [
           { name: 'Angebot', visible: true, type: 'boolean', order: 0 },
-          { name: 'Artikelname', visible: true, type: 'string', order: 1 },
-          { name: 'Bildpfad', visible: true, type: 'string', order: 2 },
-          { name: 'Food', visible: true, type: 'boolean', order: 3 },
-          { name: 'Markt', visible: true, type: 'string', order: 4 },
-          { name: 'Preis', visible: true, type: 'number', order: 5 },
-          { name: 'Produkt', visible: true, type: 'string', order: 6 },
-          { name: 'Topangebot', visible: true, type: 'boolean', order: 7 },
-          { name: 'Zusatzinfos', visible: true, type: 'array', order: 8 },
-          { name: 'id', visible: true, type: 'string', order: 9 },
-          { name: 'timestamp', visible: true, type: 'timestamp', order: 10 }
+          { name: 'Artikelname', visible: true, type: 'string', order: 2 },
+          { name: 'Bildpfad', visible: true, type: 'string', order: 3 },
+          { name: 'Food', visible: true, type: 'boolean', order: 1 },
+          { name: 'Markt', visible: true, type: 'string', order: 5 },
+          { name: 'Preis', visible: true, type: 'number', order: 6 },
+          { name: 'Produkt', visible: true, type: 'string', order: 4 },
+          { name: 'Topangebot', visible: false, type: 'boolean', order: 7 },
+          { name: 'Zusatzinfos', visible: false, type: 'array', order: 8 },
+          { name: 'id', visible: false, type: 'string', order: 9 },
+          { name: 'timestamp', visible: false, type: 'timestamp', order: 10 }
         ]
       },
       {

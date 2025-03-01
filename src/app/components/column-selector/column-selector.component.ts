@@ -11,10 +11,10 @@ import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
   standalone: true,
   imports: [AsyncPipe, NgFor, DragDropModule],
   template: `
-    <div class="column-selector bg-gray-800 p-4 rounded shadow-md h-full">
+    <div class="column-selector bg-gray-800 p-4 rounded shadow-md">
       <h3 class="text-lg font-semibold mb-2 text-gray-200">Column Visibility</h3>
 
-      <div class="columns-container" cdkDropList (cdkDropListDropped)="drop($event)">
+      <div class="columns-container max-h-[300px] overflow-y-auto" cdkDropList (cdkDropListDropped)="drop($event)">
         <div *ngFor="let column of columns$ | async; trackBy: trackByColumnName"
              class="column-item my-1 flex items-center p-2 bg-gray-700 rounded cursor-move"
              cdkDrag>
@@ -26,7 +26,7 @@ import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
               class="mr-2"
               [checked]="column.visible"
               (change)="toggleColumn(column.name)">
-            <label [for]="'col-' + column.name" class="cursor-pointer text-gray-300">
+            <label [for]="'col-' + column.name" class="cursor-pointer text-gray-300 truncate">
               {{ column.name }}
             </label>
           </div>
@@ -53,6 +53,19 @@ import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
     }
     .cdk-drag-animating {
       transition: transform 250ms;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1f2937;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4b5563;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
     }
   `]
 })

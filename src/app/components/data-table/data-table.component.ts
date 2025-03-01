@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AsyncPipe, NgFor } from '@angular/common';
+import {AsyncPipe, NgFor, NgIf} from '@angular/common';
 import { DataManagerService } from '../../services/data-manager.service';
 import {BehaviorSubject, Observable, switchMap } from 'rxjs';
 import { map, take } from 'rxjs/operators';
@@ -9,7 +9,7 @@ import { CellEditorComponent } from '../cell-editor/cell-editor.component';
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [AsyncPipe, NgFor, CellEditorComponent],
+  imports: [AsyncPipe, NgFor, CellEditorComponent, NgIf],
   template: `
     <div class="data-table-container overflow-x-auto w-full">
       <table class="min-w-full bg-gray-800 shadow-xl rounded">
