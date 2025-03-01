@@ -10,16 +10,16 @@ import { Collection } from '../../models/collection.model';
   standalone: true,
   imports: [AsyncPipe, NgFor],
   template: `
-    <div class="tabs-container bg-gray-100 p-2 rounded shadow-sm">
+    <div class="tabs-container bg-gray-800 p-2 rounded shadow-md">
       <div class="flex space-x-2">
         <button
           *ngFor="let collection of collections$ | async; trackBy: trackByCollectionName"
-          class="tab-btn py-2 px-4 rounded-t transition-colors duration-200"
-          [class.bg-white]="(activeCollectionName$ | async) === collection.name"
-          [class.text-blue-600]="(activeCollectionName$ | async) === collection.name"
+          class="tab-btn py-2 px-4 rounded-t transition-colors duration-200 text-gray-300"
+          [class.bg-gray-700]="(activeCollectionName$ | async) === collection.name"
+          [class.text-blue-400]="(activeCollectionName$ | async) === collection.name"
           [class.border-b-2]="(activeCollectionName$ | async) === collection.name"
-          [class.border-blue-600]="(activeCollectionName$ | async) === collection.name"
-          [class.bg-gray-200]="(activeCollectionName$ | async) !== collection.name"
+          [class.border-blue-400]="(activeCollectionName$ | async) === collection.name"
+          [class.bg-gray-800]="(activeCollectionName$ | async) !== collection.name"
           (click)="selectCollection(collection.name)">
           {{ collection.name }}
         </button>
@@ -31,7 +31,7 @@ import { Collection } from '../../models/collection.model';
       font-weight: 500;
     }
     .tab-btn:hover:not(.active) {
-      background-color: rgba(0, 0, 0, 0.05);
+      background-color: rgba(255, 255, 255, 0.05);
     }
   `]
 })

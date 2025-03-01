@@ -16,24 +16,23 @@ export class DataManagerService {
   }
 
   private initializeCollections() {
-    // Define initial collection structures
     const initialCollections: Collection[] = [
       {
         name: 'artikel',
         visible: true,
         documents: [],
         columns: [
-          { name: 'Angebot', visible: true, type: 'boolean' },
-          { name: 'Artikelname', visible: true, type: 'string' },
-          { name: 'Bildpfad', visible: true, type: 'string' },
-          { name: 'Food', visible: true, type: 'boolean' },
-          { name: 'Markt', visible: true, type: 'string' },
-          { name: 'Preis', visible: true, type: 'number' },
-          { name: 'Produkt', visible: true, type: 'string' },
-          { name: 'Topangebot', visible: true, type: 'boolean' },
-          { name: 'Zusatzinfos', visible: true, type: 'array' },
-          { name: 'id', visible: true, type: 'string' },
-          { name: 'timestamp', visible: true, type: 'timestamp' }
+          { name: 'Angebot', visible: true, type: 'boolean', order: 0 },
+          { name: 'Artikelname', visible: true, type: 'string', order: 1 },
+          { name: 'Bildpfad', visible: true, type: 'string', order: 2 },
+          { name: 'Food', visible: true, type: 'boolean', order: 3 },
+          { name: 'Markt', visible: true, type: 'string', order: 4 },
+          { name: 'Preis', visible: true, type: 'number', order: 5 },
+          { name: 'Produkt', visible: true, type: 'string', order: 6 },
+          { name: 'Topangebot', visible: true, type: 'boolean', order: 7 },
+          { name: 'Zusatzinfos', visible: true, type: 'array', order: 8 },
+          { name: 'id', visible: true, type: 'string', order: 9 },
+          { name: 'timestamp', visible: true, type: 'timestamp', order: 10 }
         ]
       },
       {
@@ -41,9 +40,9 @@ export class DataManagerService {
         visible: true,
         documents: [],
         columns: [
-          { name: 'name', visible: true, type: 'string' },
-          { name: 'produktid', visible: true, type: 'array' },
-          { name: 'uid', visible: true, type: 'string' }
+          { name: 'name', visible: true, type: 'string', order: 0 },
+          { name: 'produktid', visible: true, type: 'array', order: 1 },
+          { name: 'uid', visible: true, type: 'string', order: 2 }
         ]
       },
       {
@@ -51,18 +50,18 @@ export class DataManagerService {
         visible: true,
         documents: [],
         columns: [
-          { name: 'difficulty', visible: true, type: 'string' },
-          { name: 'id', visible: true, type: 'string' },
-          { name: 'image_path', visible: true, type: 'string' },
-          { name: 'image_urls', visible: true, type: 'array' },
-          { name: 'ingredients', visible: true, type: 'array' },
-          { name: 'nutrition', visible: true, type: 'map' },
-          { name: 'rating', visible: true, type: 'map' },
-          { name: 'source', visible: true, type: 'string' },
-          { name: 'source_url', visible: true, type: 'string' },
-          { name: 'steps', visible: true, type: 'array' },
-          { name: 'title', visible: true, type: 'string' },
-          { name: 'totalTime', visible: true, type: 'number' }
+          { name: 'difficulty', visible: true, type: 'string', order: 0 },
+          { name: 'id', visible: true, type: 'string', order: 1 },
+          { name: 'image_path', visible: true, type: 'string', order: 2 },
+          { name: 'image_urls', visible: true, type: 'array', order: 3 },
+          { name: 'ingredients', visible: true, type: 'array', order: 4 },
+          { name: 'nutrition', visible: true, type: 'map', order: 5 },
+          { name: 'rating', visible: true, type: 'map', order: 6 },
+          { name: 'source', visible: true, type: 'string', order: 7 },
+          { name: 'source_url', visible: true, type: 'string', order: 8 },
+          { name: 'steps', visible: true, type: 'array', order: 9 },
+          { name: 'title', visible: true, type: 'string', order: 10 },
+          { name: 'totalTime', visible: true, type: 'number', order: 11 }
         ]
       },
       {
@@ -70,9 +69,9 @@ export class DataManagerService {
         visible: true,
         documents: [],
         columns: [
-          { name: 'name', visible: true, type: 'string' },
-          { name: 'produktid', visible: true, type: 'array' },
-          { name: 'uid', visible: true, type: 'string' }
+          { name: 'name', visible: true, type: 'string', order: 0 },
+          { name: 'produktid', visible: true, type: 'array', order: 1 },
+          { name: 'uid', visible: true, type: 'string', order: 2 }
         ]
       },
       {
@@ -80,12 +79,12 @@ export class DataManagerService {
         visible: true,
         documents: [],
         columns: [
-          { name: 'einkaufszettelID', visible: true, type: 'string' },
-          { name: 'likedRecipes', visible: true, type: 'array' },
-          { name: 'name', visible: true, type: 'string' },
-          { name: 'profileImageUrl', visible: true, type: 'string' },
-          { name: 'rezeptzettelID', visible: true, type: 'string' },
-          { name: 'uid', visible: true, type: 'string' }
+          { name: 'einkaufszettelID', visible: true, type: 'string', order: 0 },
+          { name: 'likedRecipes', visible: true, type: 'array', order: 1 },
+          { name: 'name', visible: true, type: 'string', order: 2 },
+          { name: 'profileImageUrl', visible: true, type: 'string', order: 3 },
+          { name: 'rezeptzettelID', visible: true, type: 'string', order: 4 },
+          { name: 'uid', visible: true, type: 'string', order: 5 }
         ]
       }
     ];
@@ -116,9 +115,13 @@ export class DataManagerService {
 
   getActiveCollection(): Observable<Collection> {
     return this.collections.pipe(
-      map(collections =>
-        collections.find(c => c.name === this.activeCollectionName.value) || collections[0]
-      )
+      map(collections => {
+        const collection = collections.find(c => c.name === this.activeCollectionName.value) || collections[0];
+        return {
+          ...collection,
+          columns: [...collection.columns].sort((a, b) => (a.order || 0) - (b.order || 0))
+        };
+      })
     );
   }
 
@@ -149,5 +152,30 @@ export class DataManagerService {
 
   getActiveCollectionName(): Observable<string> {
     return this.activeCollectionName.asObservable();
+  }
+
+  reorderColumns(collectionName: string, startIndex: number, endIndex: number): void {
+    const collections = this.collections.value;
+    const updatedCollections = collections.map(collection => {
+      if (collection.name === collectionName) {
+        const columns = [...collection.columns];
+        const [movedColumn] = columns.splice(startIndex, 1);
+        columns.splice(endIndex, 0, movedColumn);
+
+        // Update order values
+        const updatedColumns = columns.map((col, index) => ({
+          ...col,
+          order: index
+        }));
+
+        return { ...collection, columns: updatedColumns };
+      }
+      return collection;
+    });
+    this.collections.next(updatedCollections);
+  }
+
+  deleteDocument(collectionName: string, docId: string) {
+    return this.firestoreService.deleteDocument(collectionName, docId);
   }
 }

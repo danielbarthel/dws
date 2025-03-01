@@ -1,9 +1,8 @@
-// src/app/components/data-table/data-table.component.ts
 import { Component, OnInit } from '@angular/core';
 import { AsyncPipe, NgFor } from '@angular/common';
 import { DataManagerService } from '../../services/data-manager.service';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import {BehaviorSubject, Observable, switchMap } from 'rxjs';
+import { map, take } from 'rxjs/operators';
 import { Collection, Column } from '../../models/collection.model';
 import { CellEditorComponent } from '../cell-editor/cell-editor.component';
 
@@ -13,18 +12,21 @@ import { CellEditorComponent } from '../cell-editor/cell-editor.component';
   imports: [AsyncPipe, NgFor, CellEditorComponent],
   template: `
     <div class="data-table-container overflow-x-auto w-full">
-      <table class="min-w-full bg-white shadow-md rounded">
+      <table class="min-w-full bg-gray-800 shadow-xl rounded">
         <thead>
-        <tr class="bg-gray-100 border-b">
-          <th *ngFor="let column of visibleColumns$ | async; trackBy: trackByColumnName" class="py-3 px-4 text-left font-semibold">
+        <tr class="bg-gray-900 border-b border-gray-700">
+          <th *ngFor="let column of visibleColumns$ | async; trackBy: trackByColumnName"
+              class="py-3 px-4 text-left font-semibold text-gray-300">
             {{ column.name }}
           </th>
-          <th class="py-3 px-4 text-left font-semibold">Actions</th>
+          <th class="py-3 px-4 text-left font-semibold text-gray-300">Actions</th>
         </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let doc of documents$ | async; trackBy: trackByDocId" class="border-b hover:bg-gray-50">
-          <td *ngFor="let column of visibleColumns$ | async; trackBy: trackByColumnName" class="py-2 px-4">
+        <tr *ngFor="let doc of displayedDocuments$ | async; trackBy: trackByDocId"
+            class="border-b border-gray-700 hover:bg-gray-700">
+          <td *ngFor="let column of visibleColumns$ | async; trackBy: trackByColumnName"
+              class="py-2 px-4 text-gray-300">
             <app-cell-editor
               [value]="doc[column.name]"
               [type]="column.type"
@@ -35,12 +37,27 @@ import { CellEditorComponent } from '../cell-editor/cell-editor.component';
             </app-cell-editor>
           </td>
           <td class="py-2 px-4">
-            <button class="text-blue-500 hover:text-blue-700 mr-2">Edit</button>
-            <button class="text-red-500 hover:text-red-700">Delete</button>
+            <button
+              class="text-red-400 hover:text-red-300 focus:outline-none"
+              (click)="deleteDocument(doc.docId)"
+              title="Delete">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
           </td>
         </tr>
         </tbody>
       </table>
+
+      <div class="flex justify-center py-4">
+        <button
+          *ngIf="(hasMoreDocuments$ | async)"
+          (click)="loadMore()"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-200">
+          Load More
+        </button>
+      </div>
     </div>
   `,
   styles: [`
@@ -48,33 +65,72 @@ import { CellEditorComponent } from '../cell-editor/cell-editor.component';
       max-height: calc(100vh - 200px);
       overflow-y: auto;
     }
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1f2937;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4b5563;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+    }
   `]
 })
 export class DataTableComponent implements OnInit {
-  collection$!: Observable<Collection>; // Use definite assignment assertion
-  visibleColumns$!: Observable<Column[]>; // Use definite assignment assertion
-  documents$!: Observable<any[]>; // Use definite assignment assertion
-  activeCollectionName$!: Observable<string>; // Use definite assignment assertion
+  private pageSize = 20;
+  private currentPage = 1;
+  private allDocuments: any[] = [];
+
+  collection$!: Observable<Collection>;
+  visibleColumns$!: Observable<Column[]>;
+  displayedDocuments$: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
+  hasMoreDocuments$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  activeCollectionName$!: Observable<string>;
 
   constructor(private dataManager: DataManagerService) { }
 
   ngOnInit(): void {
-    this.collection$ = this.dataManager.getActiveCollection();
     this.activeCollectionName$ = this.dataManager.getActiveCollectionName();
 
-    this.visibleColumns$ = this.collection$.pipe(
-      map(collection => collection.columns.filter(column => column.visible))
+    // Abhängigkeit von activeCollectionName hinzufügen
+    this.collection$ = this.activeCollectionName$.pipe(
+      switchMap(() => this.dataManager.getActiveCollection())
     );
 
-    this.documents$ = this.collection$.pipe(
-      map(collection => collection.documents)
+    this.visibleColumns$ = this.collection$.pipe(
+      map(collection => collection.columns
+        .filter(column => column.visible)
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+      )
     );
+
+    this.collection$.subscribe(collection => {
+      this.allDocuments = collection.documents;
+      this.updateDisplayedDocuments();
+    });
+  }
+
+  private updateDisplayedDocuments(): void {
+    const end = this.currentPage * this.pageSize;
+    const documents = this.allDocuments.slice(0, end);
+    this.displayedDocuments$.next(documents);
+    this.hasMoreDocuments$.next(end < this.allDocuments.length);
+  }
+
+  loadMore(): void {
+    this.currentPage++;
+    this.updateDisplayedDocuments();
   }
 
   updateCell(event: { docId: string, fieldName: string, value: any }): void {
-    this.activeCollectionName$.subscribe(collectionName => {
+    this.activeCollectionName$.pipe(take(1)).subscribe(collectionName => {
       this.dataManager.updateCell(collectionName, event.docId, event.fieldName, event.value);
-    }).unsubscribe();
+    });
   }
 
   trackByColumnName(index: number, column: Column): string {
@@ -83,5 +139,13 @@ export class DataTableComponent implements OnInit {
 
   trackByDocId(index: number, doc: any): string {
     return doc.docId;
+  }
+
+  deleteDocument(docId: string): void {
+    if (confirm('Are you sure you want to delete this document?')) {
+      this.activeCollectionName$.pipe(take(1)).subscribe(collectionName => {
+        this.dataManager.deleteDocument(collectionName, docId);
+      });
+    }
   }
 }
