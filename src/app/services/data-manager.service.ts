@@ -41,6 +41,7 @@ export class DataManagerService {
         documents: [],
         columns: [
           { name: 'name', visible: true, type: 'string', order: 0 },
+          // Change type to 'array' to match Zusatzinfos behavior
           { name: 'produktid', visible: true, type: 'array', order: 1 },
           { name: 'uid', visible: true, type: 'string', order: 2 }
         ]
