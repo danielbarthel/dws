@@ -1,17 +1,23 @@
 import { Component, OnInit } from '@angular/core';
 import {AsyncPipe, NgFor, NgIf} from '@angular/common';
 import { DataManagerService } from '../../services/data-manager.service';
-import {BehaviorSubject, Observable, switchMap } from 'rxjs';
+import {BehaviorSubject, Observable, switchMap, tap} from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { Collection, Column } from '../../models/collection.model';
 import { CellEditorComponent } from '../cell-editor/cell-editor.component';
+import {ServerScriptComponent} from '../server-skript/server-skript.component';
+import {TerminalOutputComponent} from '../terminal-output/terminal-output.component';
 
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [AsyncPipe, NgFor, CellEditorComponent, NgIf],
+  imports: [AsyncPipe, NgFor, CellEditorComponent, NgIf, ServerScriptComponent, TerminalOutputComponent],
   template: `
     <div class="data-table-container overflow-x-auto w-full">
+      <div class="flex justify-between mb-4">
+        <app-terminal-output></app-terminal-output>
+        <app-server-skript></app-server-skript>
+      </div>
       <table class="min-w-full bg-gray-800 shadow-xl rounded">
         <thead>
         <tr class="bg-gray-900 border-b border-gray-700">
@@ -30,7 +36,7 @@ import { CellEditorComponent } from '../cell-editor/cell-editor.component';
             <app-cell-editor
               [value]="doc[column.name]"
               [type]="column.type"
-              [docId]="doc.docId"
+              [docId]="doc.id"
               [fieldName]="column.name"
               [collectionName]="(activeCollectionName$ | async) || ''"
               (valueChanged)="updateCell($event)">
@@ -39,7 +45,7 @@ import { CellEditorComponent } from '../cell-editor/cell-editor.component';
           <td class="py-2 px-4">
             <button
               class="text-red-400 hover:text-red-300 focus:outline-none"
-              (click)="deleteDocument(doc.docId)"
+              (click)="deleteDocument(doc.id)"
               title="Delete">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -97,9 +103,10 @@ export class DataTableComponent implements OnInit {
   ngOnInit(): void {
     this.activeCollectionName$ = this.dataManager.getActiveCollectionName();
 
-    // Abhängigkeit von activeCollectionName hinzufügen
+    // switchMap verwenden, um auf Collection-Änderungen zu reagieren
     this.collection$ = this.activeCollectionName$.pipe(
-      switchMap(() => this.dataManager.getActiveCollection())
+      switchMap(() => this.dataManager.getActiveCollection()),
+      tap(collection => console.log('Active collection:', collection))
     );
 
     this.visibleColumns$ = this.collection$.pipe(
@@ -109,7 +116,9 @@ export class DataTableComponent implements OnInit {
       )
     );
 
+    // Auf Collection-Änderungen reagieren
     this.collection$.subscribe(collection => {
+      console.log('Documents:', collection.documents);
       this.allDocuments = collection.documents;
       this.updateDisplayedDocuments();
     });
@@ -129,7 +138,8 @@ export class DataTableComponent implements OnInit {
 
   updateCell(event: { docId: string, fieldName: string, value: any }): void {
     this.activeCollectionName$.pipe(take(1)).subscribe(collectionName => {
-      this.dataManager.updateCell(collectionName, event.docId, event.fieldName, event.value);
+      const fieldName = event.fieldName.toLowerCase(); // Convert to lowercase
+      this.dataManager.updateCell(collectionName, event.docId, fieldName, event.value);
     });
   }
 

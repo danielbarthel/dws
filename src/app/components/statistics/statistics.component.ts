@@ -128,36 +128,36 @@ export class StatisticsComponent implements OnInit {
   }
 
   private initStats(): void {
-    // Artikel stats
+    // Artikel stats with lowercase field names
     this.reweCount$ = this.activeCollection$.pipe(
       map(collection => collection.name === 'artikel' ?
-        collection.documents.filter(doc => doc.Markt === 'Rewe').length : 0)
+        collection.documents.filter(doc => doc.markt === 'Rewe').length : 0)
     );
 
     this.pennyCount$ = this.activeCollection$.pipe(
       map(collection => collection.name === 'artikel' ?
-        collection.documents.filter(doc => doc.Markt === 'Penny').length : 0)
+        collection.documents.filter(doc => doc.markt === 'Penny').length : 0)
     );
 
     this.reweOfferCount$ = this.activeCollection$.pipe(
       map(collection => collection.name === 'artikel' ?
-        collection.documents.filter(doc => doc.Markt === 'Rewe' && doc.Angebot).length : 0)
+        collection.documents.filter(doc => doc.markt === 'Rewe' && doc.angebot).length : 0)
     );
 
     this.pennyOfferCount$ = this.activeCollection$.pipe(
       map(collection => collection.name === 'artikel' ?
-        collection.documents.filter(doc => doc.Markt === 'Penny' && doc.Angebot).length : 0)
+        collection.documents.filter(doc => doc.markt === 'Penny' && doc.angebot).length : 0)
     );
 
     this.foodCount$ = this.activeCollection$.pipe(
       map(collection => collection.name === 'artikel' ?
-        collection.documents.filter(doc => doc.Food).length : 0)
+        collection.documents.filter(doc => doc.food).length : 0)
     );
 
     this.foodWithProductCount$ = this.activeCollection$.pipe(
       map(collection => collection.name === 'artikel' ?
         collection.documents.filter(doc =>
-          doc.Food && doc.Produkt && doc.Produkt !== '' && doc.Produkt !== 'test'
+          doc.food && doc.produkt && doc.produkt !== '' && doc.produkt !== 'test'
         ).length : 0)
     );
 

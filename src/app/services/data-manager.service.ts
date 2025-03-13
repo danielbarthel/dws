@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { FirestoreService } from './firestore.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Collection, Column } from '../models/collection.model';
+import {PostgresService} from './postgres.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +11,7 @@ export class DataManagerService {
   private collections: BehaviorSubject<Collection[]> = new BehaviorSubject<Collection[]>([]);
   private activeCollectionName: BehaviorSubject<string> = new BehaviorSubject<string>('artikel');
 
-  constructor(private firestoreService: FirestoreService) {
+  constructor(private postgresService: PostgresService) {
     this.initializeCollections();
   }
 
@@ -22,15 +22,15 @@ export class DataManagerService {
         visible: true,
         documents: [],
         columns: [
-          { name: 'Angebot', visible: true, type: 'boolean', order: 0 },
-          { name: 'Artikelname', visible: true, type: 'string', order: 2 },
-          { name: 'Bildpfad', visible: true, type: 'string', order: 3 },
-          { name: 'Food', visible: true, type: 'boolean', order: 1 },
-          { name: 'Markt', visible: true, type: 'string', order: 5 },
-          { name: 'Preis', visible: true, type: 'number', order: 6 },
-          { name: 'Produkt', visible: true, type: 'string', order: 4 },
-          { name: 'Topangebot', visible: false, type: 'boolean', order: 7 },
-          { name: 'Zusatzinfos', visible: false, type: 'array', order: 8 },
+          { name: 'angebot', visible: true, type: 'boolean', order: 0 },
+          { name: 'artikelname', visible: true, type: 'string', order: 3 },
+          { name: 'bildpfad', visible: true, type: 'string', order: 2 },
+          { name: 'food', visible: true, type: 'boolean', order: 1 },
+          { name: 'markt', visible: true, type: 'string', order: 5 },
+          { name: 'preis', visible: true, type: 'number', order: 6 },
+          { name: 'produkt', visible: true, type: 'string', order: 4 },
+          { name: 'topangebot', visible: false, type: 'boolean', order: 7 },
+          { name: 'zusatzinfos', visible: false, type: 'array', order: 8 },
           { name: 'id', visible: false, type: 'string', order: 9 },
           { name: 'timestamp', visible: false, type: 'timestamp', order: 10 }
         ]
@@ -95,17 +95,22 @@ export class DataManagerService {
   }
 
   private loadAllCollections() {
-    const collections = this.collections.value;
+    console.log('Loading all collections');
 
-    collections.forEach(collection => {
-      this.firestoreService.getCollection(collection.name).subscribe(documents => {
-        const updatedCollections = this.collections.value.map(c => {
-          if (c.name === collection.name) {
-            return { ...c, documents };
-          }
-          return c;
-        });
-        this.collections.next(updatedCollections);
+    this.collections.value.forEach(collection => {
+      this.postgresService.getCollection(collection.name).subscribe({
+        next: (documents) => {
+          console.log(`Loaded ${documents.length} documents for ${collection.name}`);
+
+          const updatedCollections = this.collections.value.map(c => {
+            if (c.name === collection.name) {
+              return { ...c, documents };
+            }
+            return c;
+          });
+          this.collections.next(updatedCollections);
+        },
+        error: (error) => console.error(`Error loading ${collection.name}:`, error)
       });
     });
   }
@@ -147,8 +152,99 @@ export class DataManagerService {
     this.collections.next(updatedCollections);
   }
 
-  updateCell(collectionName: string, docId: string, fieldName: string, value: any) {
-    return this.firestoreService.updateDocument(collectionName, docId, { [fieldName]: value });
+  // In DataManagerService
+  async updateCell(collectionName: string, docId: string, fieldName: string, value: any): Promise<void> {
+    try {
+      if (!docId) {
+        throw new Error('Document ID is required');
+      }
+
+      // Create update payload
+      const updateData = { [fieldName]: value };
+
+      // Update database
+      await this.postgresService.updateDocument(collectionName, docId, updateData);
+
+      // Update local state
+      const collections = this.collections.value;
+      const updatedCollections = collections.map(collection => {
+        if (collection.name === collectionName) {
+          const updatedDocuments = collection.documents.map(doc => {
+            if (doc.id === docId) {
+              return { ...doc, [fieldName]: value };
+            }
+            return doc;
+          });
+          return { ...collection, documents: updatedDocuments };
+        }
+        return collection;
+      });
+      this.collections.next(updatedCollections);
+    } catch (error) {
+      console.error('Error updating cell:', error);
+      throw error;
+    }
+  }
+  // In DataManagerService
+  async addToArray(collectionName: string, docId: string, fieldName: string, value: any): Promise<void> {
+    try {
+      // First update database
+      await this.postgresService.addToArray(collectionName, docId, fieldName, value);
+
+      // Then update local state
+      const collections = this.collections.value;
+      const updatedCollections = collections.map(collection => {
+        if (collection.name === collectionName) {
+          const updatedDocuments = collection.documents.map(doc => {
+            if (doc.id === docId) {
+              const currentArray = Array.isArray(doc[fieldName]) ? doc[fieldName] : [];
+              return { ...doc, [fieldName]: [...currentArray, value] };
+            }
+            return doc;
+          });
+          return { ...collection, documents: updatedDocuments };
+        }
+        return collection;
+      });
+      this.collections.next(updatedCollections);
+    } catch (error) {
+      console.error('Error adding to array:', error);
+      throw error;
+    }
+  }
+
+  async removeFromArray(collectionName: string, docId: string, fieldName: string, value: any): Promise<void> {
+    try {
+      // First update database
+      await this.postgresService.removeFromArray(collectionName, docId, fieldName, value);
+
+      // Then update local state
+      const collections = this.collections.value;
+      const updatedCollections = collections.map(collection => {
+        if (collection.name === collectionName) {
+          const updatedDocuments = collection.documents.map(doc => {
+            if (doc.id === docId) {
+              const currentArray = Array.isArray(doc[fieldName]) ? doc[fieldName] : [];
+              return {
+                ...doc,
+                [fieldName]: currentArray.filter(item => item !== value)
+              };
+            }
+            return doc;
+          });
+          return { ...collection, documents: updatedDocuments };
+        }
+        return collection;
+      });
+      this.collections.next(updatedCollections);
+    } catch (error) {
+      console.error('Error removing from array:', error);
+      throw error;
+    }
+  }
+
+  private capitalizeFirstLetter(field: string): string {
+    return field.charAt(0).toUpperCase() + field.slice(1);
   }
 
   getActiveCollectionName(): Observable<string> {
@@ -177,6 +273,6 @@ export class DataManagerService {
   }
 
   deleteDocument(collectionName: string, docId: string) {
-    return this.firestoreService.deleteDocument(collectionName, docId);
+    return this.postgresService.deleteDocument(collectionName, docId);
   }
 }

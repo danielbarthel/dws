@@ -15,7 +15,6 @@ import {ArrayDialogComponent} from '../array-dialog/array-dialog.component';
             [src]="getFullImageUrl(value)"
             [alt]="fieldName"
             class="h-full w-auto object-contain rounded"
-            onerror="this.src='assets/placeholder.png'"
           >
         </div>
       </ng-container>
@@ -149,29 +148,37 @@ export class CellEditorComponent {
     }, 0);
   }
 
-  saveString(event: any): void {
-    const newValue = event.target.value;
-    if (this.value !== newValue) {
-      this.emitChange(newValue);
+  // In CellEditorComponent
+  updateBooleanValue(event: Event): void {
+    const value = (event.target as HTMLInputElement).checked;
+    this.emitChange(value);
+  }
+
+  saveString(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.trim();
+    this.emitChange(value);
+    this.isEditing = false;
+  }
+
+  saveNumber(event: Event): void {
+    const value = parseFloat((event.target as HTMLInputElement).value);
+    if (!isNaN(value)) {
+      this.emitChange(value);
     }
     this.isEditing = false;
   }
 
-  saveNumber(event: any): void {
-    const newValue = parseFloat(event.target.value);
-    if (this.value !== newValue) {
-      this.emitChange(newValue);
+  private emitChange(newValue: any): void {
+    if (!this.docId) {
+      console.error('No document ID available for update');
+      return;
     }
-    this.isEditing = false;
-  }
 
-  updateBooleanValue(event: any): void {
-    const newValue = event.target.checked;
-    this.emitChange(newValue);
-  }
-
-  openArrayEditor(): void {
-    console.log('Opening array editor for', this.fieldName);
+    this.valueChanged.emit({
+      docId: this.docId,
+      fieldName: this.fieldName,
+      value: newValue
+    });
   }
 
   openMapEditor(): void {
@@ -188,15 +195,18 @@ export class CellEditorComponent {
     return String(this.value);
   }
 
+  // In CellEditorComponent
   isImageField(): boolean {
-    return this.fieldName === 'Bildpfad' || this.fieldName === 'image_path';
+    // Anpassung der Feldnamen auf Kleinbuchstaben
+    return this.fieldName.toLowerCase() === 'bildpfad' ||
+      this.fieldName.toLowerCase() === 'image_path';
   }
 
   getFullImageUrl(path: string): string {
     if (!path) return '';
-    const baseUrl = 'https://firebasestorage.googleapis.com/v0/b/disco-416210.appspot.com/o/';
-    const encodedPath = path.replace(/\//g, '%2F');
-    return `${baseUrl}${encodedPath}?alt=media`;
+    // Remove leading /images/ if present
+    const cleanPath = path.replace(/^\/images\//, '');
+    return `http://192.168.1.111:8000/images/${cleanPath}`;
   }
 
   toggleArrayDialog(event?: MouseEvent): void {
@@ -208,13 +218,5 @@ export class CellEditorComponent {
       };
     }
     this.showArrayDialog = !this.showArrayDialog;
-  }
-
-  private emitChange(newValue: any): void {
-    this.valueChanged.emit({
-      docId: this.docId,
-      fieldName: this.fieldName,
-      value: newValue
-    });
   }
 }
